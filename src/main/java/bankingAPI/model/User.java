@@ -1,6 +1,6 @@
 package bankingAPI.model;
 
-
+import bankingAPI.entity.Role;
 import bankingAPI.entity.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -41,6 +41,10 @@ public class User {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private Role role = Role.USER;
 
     @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Account> accounts = new ArrayList<>();
