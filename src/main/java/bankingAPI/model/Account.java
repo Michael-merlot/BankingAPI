@@ -3,8 +3,8 @@ package bankingAPI.model;
 import bankingAPI.entity.AccountStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.Transaction;
 import org.hibernate.annotations.CreationTimestamp;
+import bankingAPI.model.Transaction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
