@@ -20,8 +20,8 @@ public class AccountService {
     private final UserRepository userRepository;
 
     @Transactional
-    public Account createAccount(Long userId){
-        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+    public Account createAccount(String email){
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Пользователь не найден"));
         Account account = Account.builder()
                 .owner(user)
                 .build();
@@ -29,14 +29,19 @@ public class AccountService {
         return accountRepository.save(account);
     }
 
-    public List<Account> getUserAccount(Long userId){
-        return accountRepository.findByOwnerId(userId);
+    public List<Account> getUserAccounts(String email){
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+        return accountRepository.findByOwnerId(user.getId());
     }
 
     @Transactional
-    public Account deposit(Long accountId, BigDecimal amount){
+    public Account deposit(Long accountId, BigDecimal amount, String email){
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Пользователь не найден"));
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Счёт не найден"));
 
+        if (!account.getOwner().getId().equals(user.getId())){
+            throw new RuntimeException("Это не ваш счёт");
+        }
         if (account.getStatus() != AccountStatus.ACTIVE){
             throw new RuntimeException("Счёт недоступен для операций");
         }
@@ -46,7 +51,9 @@ public class AccountService {
     }
 
     @Transactional
-    public void transfer(Long fromId, Long toId, BigDecimal amount){
+    public void transfer(Long fromId, Long toId, BigDecimal amount, String email){
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
         if (fromId.equals(toId)){
             throw new RuntimeException("Нельзя переводить на тот же счёт");
         }
@@ -54,6 +61,9 @@ public class AccountService {
         Account from = accountRepository.findById(fromId).orElseThrow(() -> new RuntimeException("Счёт отправителя не найден"));
         Account to = accountRepository.findById(toId).orElseThrow(() -> new RuntimeException("Счёт получателя не найден"));
 
+        if (!from.getOwner().getId().equals(user.getId())){
+            throw new RuntimeException("Это не ваш счёт");
+        }
         if (from.getStatus() != AccountStatus.ACTIVE){
             throw new RuntimeException("Счёт отправителя недоступен");
         }
